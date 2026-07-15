@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kalmia — 커다란 희망을 디자인합니다</title>
+<meta name="description" content="kalmia · 디자인 포트폴리오">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<section class="hero">
+  <video id="bg" autoplay muted loop playsinline preload="auto"></video>
+  <div class="scrim"></div>
+  <div class="header-grad"></div>
+
+  <div class="logo"><img src="assets/logo.png" alt="kalmia" width="68" height="68"></div>
+
+  <button class="menu-btn" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="menu">
+    <span class="bars" aria-hidden="true"><i></i><i></i></span>
+  </button>
+
+  <div class="menu-overlay" id="menu">
+    <nav>
+      <a href="#experience">Experience</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+
+  <div class="brand">
+    <div class="mark">kal<em>mia</em></div>
+    <!-- 태그라인: 원하는 문구로 교체하세요 -->
+    <div class="tag">척박한 곳에서도 피어나는, <br>커다란 희망.</div>
+  </div>
+</section>
+
+<!-- 커스텀 커서 -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
+  <filter id="dropletGlass" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="40" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div class="cursor" aria-hidden="true">
+  <div class="cursor-ring"></div>
+  <div class="cursor-dot"></div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

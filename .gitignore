@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+
+# 에디터/도구 작업 폴더
+.claude/
+.superpowers/
+.playwright-mcp/
+
+# 작업용 스크린샷/임시
+*.png.tmp
+scratchpad/
+
+# 미사용 원본 에셋 (정리 전 로컬 보관 — 저장소에는 포함하지 않음)
+Aclonica,Arsenal_SC,Poppins/
+칼미아_심볼 (W) 복사.png
+kalmia-home.jpg
+Flowers_sway,_teddy_bear_still_202607142349.mp4
+assets/hero-data.js
+assets/hero.jpg
