@@ -8,12 +8,16 @@
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<section class="hero">
-  <video id="bg" autoplay muted loop playsinline preload="auto"></video>
-  <div class="scrim"></div>
-  <div class="header-grad"></div>
+<body class="page-home">
 
+  <!-- 배경 영상 레이어 (스크롤 시 페이드아웃) -->
+  <section class="hero">
+    <video id="bg" autoplay muted loop playsinline preload="auto"></video>
+    <div class="scrim"></div>
+    <div class="header-grad"></div>
+  </section>
+
+  <!-- GNB: 로고 · 메뉴 버튼 (항상 고정) -->
   <div class="logo"><img src="assets/logo.png" alt="kalmia" width="68" height="68"></div>
 
   <button class="menu-btn" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="menu">
@@ -22,31 +26,46 @@
 
   <div class="menu-overlay" id="menu">
     <nav>
-      <a href="#experience">Experience</a>
+      <a href="experience.html">Experience</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
   </div>
 
+  <!-- 헤더 흐르는 문구 (스크롤 시 페이드아웃) -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__track">
+      <span class="ticker__text">There comes a quiet moment in every life when the heart begins to long for something greater than comfort. It is then that we discover our dreams were never meant to arrive all at once, but to grow gently with every choice we make. Hope is not the certainty of reaching the horizon; it is the courage to keep walking toward a dawn we cannot yet see. Like a flower that blooms in its own season, every purpose unfolds in its own time. Trust the unseen work within you, cherish each small step, and never be afraid to carry a dream that feels larger than yourself. The greatest journeys are not measured by how quickly we arrive, but by the person we become along the way.</span>
+      <span class="ticker__text">There comes a quiet moment in every life when the heart begins to long for something greater than comfort. It is then that we discover our dreams were never meant to arrive all at once, but to grow gently with every choice we make. Hope is not the certainty of reaching the horizon; it is the courage to keep walking toward a dawn we cannot yet see. Like a flower that blooms in its own season, every purpose unfolds in its own time. Trust the unseen work within you, cherish each small step, and never be afraid to carry a dream that feels larger than yourself. The greatest journeys are not measured by how quickly we arrive, but by the person we become along the way.</span>
+    </div>
+  </div>
+
+  <!-- 브랜드 히어로 카피 (스크롤 시 GNB 중앙으로 이동) -->
   <div class="brand">
     <div class="mark">kal<em>mia</em></div>
-    <!-- 태그라인: 원하는 문구로 교체하세요 -->
     <div class="tag">척박한 곳에서도 피어나는, <br>커다란 희망.</div>
   </div>
-</section>
 
-<!-- 커스텀 커서 -->
-<svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
-  <filter id="dropletGlass" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="2" seed="7" result="n"/>
-    <feDisplacementMap in="SourceGraphic" in2="n" scale="40" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
-<div class="cursor" aria-hidden="true">
-  <div class="cursor-ring"></div>
-  <div class="cursor-dot"></div>
-</div>
+  <!-- 스크롤 흐름: 히어로 여백 → 블랙 섹션 -->
+  <div class="home-flow">
+    <div class="hero-spacer"></div>
+    <section class="dark-section">
+      <p class="dark-copy">A flower is shaped not only by the moment it blooms,<br>
+        but by all the time it spends becoming. So it is with purpose.</p>
+      <img class="dark-crystal" src="칼미아%20로코%203d.png" alt="kalmia 3d symbol">
+      <p class="dark-copy dark-copy-2">It is the quiet days, the moments of uncertainty,<br>
+        and the strength to endure that give a life its depth.</p>
+    </section>
 
-<script src="js/main.js"></script>
+    <!-- 별이 하나둘 생겨나는 검은 영역 (스크롤 연동) -->
+    <section class="stars-section">
+      <div class="starfield" id="starfield" aria-hidden="true"></div>
+    </section>
+  </div>
+
+  <!-- 커스텀 커서 (임시: 50x50 원, 내부 블랙 40%) — 물방울은 docs/cursor-droplet-backup.md 참고 -->
+  <div class="cursor" aria-hidden="true"></div>
+
+  <script src="js/main.js"></script>
 </body>
 </html>

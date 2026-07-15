@@ -5,74 +5,20 @@
 //  3) 배경 영상 재생/순환
 // ==========================================================================
 
-// ---------- 1) 커스텀 커서 (도트 + 링) ----------
+// ---------- 1) 커스텀 커서 (임시: 심플 원) ----------
+// 물방울 커서는 docs/cursor-droplet-backup.md 에 보관
 (function(){
   if(!matchMedia('(pointer:fine)').matches) return;   // 터치 기기에선 미적용
-  const root=document.querySelector('.cursor');
-  const dot=root.querySelector('.cursor-dot');
-  const ring=root.querySelector('.cursor-ring');
-  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const INTERACTIVE='a,button,.logo,[data-cursor]';
-  let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my,shown=false;
-
+  const c=document.querySelector('.cursor');
+  if(!c) return;
+  let shown=false;
   addEventListener('pointermove',e=>{
-    mx=e.clientX;my=e.clientY;
-    dot.style.left=mx+'px';dot.style.top=my+'px';   // 도트는 즉시 추적
-    if(!shown){shown=true;root.classList.add('is-visible');}
+    c.style.left=e.clientX+'px';
+    c.style.top=e.clientY+'px';
+    if(!shown){shown=true;c.classList.add('is-visible');}
   },{passive:true});
-
-  // 링크·버튼·로고 위에서 링 확대
-  addEventListener('pointerover',e=>{
-    if(e.target.closest&&e.target.closest(INTERACTIVE)) root.classList.add('is-hover');
-  },{passive:true});
-  addEventListener('pointerout',e=>{
-    const from=e.target.closest&&e.target.closest(INTERACTIVE);
-    const to=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest(INTERACTIVE);
-    if(from&&!to) root.classList.remove('is-hover');
-  },{passive:true});
-
-  addEventListener('pointerdown',()=>root.classList.add('is-down'),{passive:true});
-  addEventListener('pointerup',()=>root.classList.remove('is-down'),{passive:true});
-  document.addEventListener('mouseleave',()=>root.classList.remove('is-visible'));
-  document.addEventListener('mouseenter',()=>{if(shown)root.classList.add('is-visible');});
-
-  // 물길(트레일) 노드 생성 — 서로를 따라오는 작은 물방울 체인
-  const TRAIL_N=7, trail=[];
-  for(let i=0;i<TRAIL_N;i++){
-    const el=document.createElement('div');
-    el.className='cursor-trail';
-    const size=15-i*1.6; el.style.width=size+'px'; el.style.height=size+'px';
-    root.appendChild(el);
-    trail.push({el,x:mx,y:my,base:0.42*(1-i/TRAIL_N)});
-  }
-
-  // 링 지연 추적 + 이동 방향 늘어남 + 물길 (reduced-motion이면 즉시·트레일 off)
-  let prx=rx,pry=ry;
-  (function tick(){
-    if(reduce){rx=mx;ry=my;}else{rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;}
-    ring.style.left=rx+'px';ring.style.top=ry+'px';
-
-    const dx=rx-prx,dy=ry-pry,sp=Math.hypot(dx,dy); prx=rx;pry=ry;
-    // 이동 방향으로 늘어나고 수직으로 눌림 (관성 변형)
-    if(!reduce&&sp>0.5){
-      const st=Math.min(sp*0.018,0.42), ang=Math.atan2(dy,dx);
-      ring.style.transform=`translate(-50%,-50%) rotate(${ang}rad) scale(${1+st},${1-st*0.55})`;
-    }else{
-      ring.style.transform='translate(-50%,-50%)';
-    }
-
-    // 물길: 속도에 따라 꼬리가 늘어났다가 멈추면 본체로 모이며 사라짐
-    const sf=reduce?0:Math.min(1,sp*0.09);
-    let lx=rx,ly=ry;
-    for(let i=0;i<TRAIL_N;i++){
-      const tn=trail[i];
-      tn.x+=(lx-tn.x)*0.4; tn.y+=(ly-tn.y)*0.4;
-      tn.el.style.left=tn.x+'px'; tn.el.style.top=tn.y+'px';
-      tn.el.style.opacity=(tn.base*sf).toFixed(3);
-      lx=tn.x; ly=tn.y;
-    }
-    requestAnimationFrame(tick);
-  })();
+  document.addEventListener('mouseleave',()=>c.classList.remove('is-visible'));
+  document.addEventListener('mouseenter',()=>{if(shown)c.classList.add('is-visible');});
 })();
 
 // ---------- 2) 햄버거 메뉴 토글 ----------
@@ -90,6 +36,107 @@
   overlay.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setOpen(false)));
   // ESC 로 닫기
   addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
+})();
+
+// ---------- 2.5) 홈 스크롤 스크럽 (영상 페이드 + kalmia → GNB 중앙) ----------
+(function(){
+  if(!document.body.classList.contains('page-home')) return;
+  const hero=document.querySelector('.hero');
+  const brand=document.querySelector('.brand');
+  const mark=brand&&brand.querySelector('.mark');
+  const tag=brand&&brand.querySelector('.tag');
+  const ticker=document.querySelector('.ticker');
+  const menuBtn=document.querySelector('.menu-btn');
+  if(!hero||!brand||!mark) return;
+
+  let s1=1,tx1=0,ty1=0,phase=1;
+  const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+
+  // 정지 상태(rest)에서 기준값 측정 → 시작/끝 좌표·스케일 계산
+  function measure(){
+    brand.style.transform='none';
+    const r=mark.getBoundingClientRect();
+    const base=parseFloat(getComputedStyle(mark).fontSize)||180;
+    const w0=r.width, h0=r.height, x0=r.left, y0=r.top;
+    // GNB 중앙 도착 크기: 모바일로 갈수록 작게
+    const endFont=Math.max(26,Math.min(40,innerWidth*0.075));
+    s1=endFont/base;
+    const b=menuBtn?menuBtn.getBoundingClientRect():{top:24,height:64};
+    const cy1=b.top+b.height/2;       // GNB 세로 중앙
+    const cx1=innerWidth/2;           // 가로 중앙
+    tx1=cx1 - x0 - s1*w0/2;
+    ty1=cy1 - y0 - s1*h0/2;
+    phase=innerHeight*0.9;            // 이 스크롤 거리 동안 애니메이션 완료
+    update();
+  }
+
+  function update(){
+    const p=clamp(scrollY/phase,0,1);
+    brand.style.transform='translate('+(tx1*p).toFixed(2)+'px,'+(ty1*p).toFixed(2)+'px) scale('+(1+(s1-1)*p).toFixed(4)+')';
+    hero.style.opacity=(1-p).toFixed(3);                 // 영상 페이드아웃
+    if(tag) tag.style.opacity=clamp(1-p/0.3,0,1).toFixed(3);      // 태그: 빠르게 사라짐
+    if(ticker) ticker.style.opacity=clamp(1-p/0.6,0,1).toFixed(3);// 티커: kalmia 도착 전 사라짐
+  }
+
+  addEventListener('scroll',update,{passive:true});
+  addEventListener('resize',measure,{passive:true});
+  measure();
+  addEventListener('load',measure);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);   // 폰트 로드 후 재측정
+})();
+
+// ---------- 2.6) 블랙 섹션 크리스털 패럴랙스 (스크롤 시 살짝 위로) ----------
+(function(){
+  if(!document.body.classList.contains('page-home')) return;
+  const section=document.querySelector('.dark-section');
+  const crystal=document.querySelector('.dark-crystal');
+  if(!section||!crystal) return;
+  const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
+  function parallax(){
+    const r=section.getBoundingClientRect();
+    // 섹션이 화면을 지나가는 진행도(0→1)
+    const p=clamp((innerHeight - r.top)/(innerHeight + r.height),0,1);
+    const y=360 - 450*p;             // 스크롤에 따라 아래 → 위로 이동 (시작을 더 아래)
+    crystal.style.transform='translateY('+y.toFixed(1)+'px)';
+  }
+  addEventListener('scroll',parallax,{passive:true});
+  addEventListener('resize',parallax,{passive:true});
+  parallax();
+})();
+
+// ---------- 2.7) 별 생성 + 스크롤에 따라 하나둘 등장 ----------
+(function(){
+  if(!document.body.classList.contains('page-home')) return;
+  const field=document.getElementById('starfield');
+  if(!field) return;
+  const N=90, stars=[];
+  for(let i=0;i<N;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    // 크기 변주: 대부분 작은 별, 가끔 큰 별(은은한 글로우)
+    const size=(Math.random()<0.14 ? 2.4 : (Math.random()<0.5 ? 1.4 : 1)) * (1+Math.random()*0.6);
+    s.style.width=size.toFixed(2)+'px';
+    s.style.height=size.toFixed(2)+'px';
+    s.style.left=(Math.random()*100).toFixed(2)+'%';
+    s.style.top=(Math.random()*100).toFixed(2)+'%';
+    s.style.setProperty('--o',(0.4+Math.random()*0.6).toFixed(2));
+    if(size>2.2) s.style.boxShadow='0 0 6px rgba(255,255,255,.85)';
+    field.appendChild(s);
+    stars.push(s);
+  }
+  let ticking=false;
+  function reveal(){
+    const trigger=innerHeight*0.9;   // 화면 하단쯤 올라오면 켜짐
+    for(let i=0;i<stars.length;i++){
+      const s=stars[i];
+      if(s.classList.contains('on')) continue;
+      if(s.getBoundingClientRect().top < trigger) s.classList.add('on');
+    }
+    ticking=false;
+  }
+  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(reveal);}},{passive:true});
+  addEventListener('resize',reveal,{passive:true});
+  reveal();
 })();
 
 // ---------- 3) 배경 영상 ----------
