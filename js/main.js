@@ -1,9 +1,43 @@
 // ==========================================================================
 // kalmia — 히어로 인터랙션
-//  1) 커스텀 커서 (도트 + 리퀴드 글래스 링 + 물길 트레일)
-//  2) 햄버거 메뉴 토글 (흰색 레이어 페이드인)
+//  0) 부드러운 스크롤 (관성/감속)
+//  1) 커스텀 커서 (임시: 심플 원)
+//  2) 햄버거 메뉴 토글
 //  3) 배경 영상 재생/순환
 // ==========================================================================
+
+// ---------- 0) 부드러운 스크롤 (관성/감속) — 데스크톱 휠 전용 ----------
+(function(){
+  if(!matchMedia('(pointer:fine)').matches) return;                 // 터치는 네이티브 관성 유지
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return; // 모션 최소화 존중
+  const EASE=0.1;          // 작을수록 더 미끄러지듯(잔여 스크롤 김)
+  const MULT=1;            // 휠 이동량 배율 (작을수록 느림)
+  let target=scrollY, current=target, animating=false;
+  const maxScroll=()=>document.documentElement.scrollHeight-innerHeight;
+  const clamp=v=>{const m=maxScroll();return v<0?0:(v>m?m:v);};
+
+  function animate(){
+    current+=(target-current)*EASE;
+    if(Math.abs(target-current)<0.4){ current=target; scrollTo(0,current); animating=false; return; }
+    scrollTo(0,current);
+    requestAnimationFrame(animate);
+  }
+  function start(){ if(!animating){ animating=true; requestAnimationFrame(animate); } }
+
+  addEventListener('wheel',e=>{
+    if(e.ctrlKey) return;                       // 확대(ctrl+휠)는 통과
+    e.preventDefault();
+    let d=e.deltaY;
+    if(e.deltaMode===1) d*=16;                  // 줄 단위 → px 근사
+    else if(e.deltaMode===2) d*=innerHeight;    // 페이지 단위
+    target=clamp(target + d*MULT);
+    start();
+  },{passive:false});
+
+  // 네이티브 스크롤(키보드·스크롤바·앵커)과 동기화
+  addEventListener('scroll',()=>{ if(!animating){ current=target=scrollY; } },{passive:true});
+  addEventListener('resize',()=>{ target=clamp(target); },{passive:true});
+})();
 
 // ---------- 1) 커스텀 커서 (임시: 심플 원) ----------
 // 물방울 커서는 docs/cursor-droplet-backup.md 에 보관
